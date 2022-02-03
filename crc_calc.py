@@ -24,25 +24,36 @@ def helpString():
         1. poly as a HEX number
         2. the word with as decimal number
         
-
+    CRC Examples:
+        CRC-32: 0x100050003
+        CRC-4 : 0x19
+    
+    
     Returns
     -------
     None.
+    
+    Example
+    -------
+    for CRC-32 and 32-bit word width:
+    >> python .\crc_calc.py 0x100050003 32
+    
+    
 
     '''
 
 #print ('Hello, world!')
-def crcCalculate(wordWidth):
-    sampData = [1, 1, 0, 1, 1, 0, 0, 1]
+def crcCalculate(poly, wordWidth):
+    #sampData = [1, 1, 0, 1, 1, 0, 0, 1]
 
     #dataW = 4
     #dataW = 32
     dataW = int(wordWidth)
 
     XOR = ' ^ '
-    crcPolyHexInput = int(0x19) # 11001 CRC-4
-    crcPolyHexInput = int(0x100050003) # CRC-32
-    #crcPolyHexInput = int(poly)
+    #crcPolyHexInput = int(0x19) # 11001 CRC-4
+    #crcPolyHexInput = int(0x100050003) # CRC-32
+    crcPolyHexInput = int(poly, base=16)
 
     #crcPolyShift = int(crcPolyHexInput)
     crcPolyShift = crcPolyHexInput
@@ -125,10 +136,27 @@ if __name__ == "__main__":
            print ("=> got POLY: {}\n".format(poly))
            print ("=> got wordWidth: {}\n\n".format(wordWidth))
            
-       crcCalculate(wordWidth)
+       crcCalculate(poly, wordWidth)
     
        
        
+      
+    
+        
+
+
+    
+
+
+
+
+
+
+
+
+
+
+ 
       
     
         
