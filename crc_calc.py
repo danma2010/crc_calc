@@ -26,7 +26,7 @@ def helpString():
         2. the word with as decimal number
         
     CRC Examples:
-        CRC-32: 0x100050003 
+        CRC-32: 0x100050003
         CRC-4 : 0x19
     
     
@@ -54,10 +54,12 @@ def crcCalculate(poly, wordWidth):
     XOR = ' ^ '
     #crcPolyHexInput = int(0x19) # 11001 CRC-4
     #crcPolyHexInput = int(0x100050003) # CRC-32
+    # make the poly to a HEX number
     crcPolyHexInput = int(poly, base=16)
 
     #crcPolyShift = int(crcPolyHexInput)
     crcPolyShift = crcPolyHexInput
+
 
     polyList = []
     crcList  = []
@@ -65,6 +67,7 @@ def crcCalculate(poly, wordWidth):
     equationList = []
     crcLen = 0
 
+    # make the list to hold the data-poly
     for i in range(dataW):
         dataList.append('d'+str(i))
         i = i+1
@@ -74,7 +77,9 @@ def crcCalculate(poly, wordWidth):
     while crcPolyShift > 0:
         polyList.append(crcPolyShift %2)
         crcPolyShift = int(crcPolyShift/2)
+        # make the CRC register
         crcList.append('c'+str(crcLen))
+        # make the Equation list
         equationList.append('c'+str(crcLen)+' = ')
         crcLen = crcLen+1
     
@@ -87,8 +92,10 @@ def crcCalculate(poly, wordWidth):
     #print(crcList)
     
     # make the shift process
+    # shift over the data register (data iterations) and the CRC bits
     for i in range(dataW-1, -1, -1):
         for j in range(crcLen-1, 0, -1):
+            # if '1' gets to the MSB, xor it with the CRC reg, else just shift
             if polyList[j]==1:
                 crcList[j] = crcList[crcLen-1] + XOR + crcList[j-1]
             else:
@@ -99,7 +106,8 @@ def crcCalculate(poly, wordWidth):
             crcList[0] = crcList[crcLen-1] + XOR + dataList[i]
         else:
             crcList[0] = dataList[i]
-    
+
+    # make the Equation
     for i in range(crcLen):
         equationList[i] = equationList[i] + crcList[i]
     
@@ -110,7 +118,8 @@ def crcCalculate(poly, wordWidth):
     #print(dataList)
     #print(crcList)
     #print(equationList)
-    
+
+    print("The following are the equations for each bit")
     for i in equationList:
         print(i)
     
