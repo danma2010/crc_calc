@@ -13,6 +13,7 @@ import re
 #import time
 import sys
 
+
 def helpString():
     '''
     CRC Parallel Equetion CALCULATOR
@@ -25,7 +26,7 @@ def helpString():
         2. the word with as decimal number
         
     CRC Examples:
-        CRC-32: 0x100050003
+        CRC-32: 0x100050003 
         CRC-4 : 0x19
     
     
