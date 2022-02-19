@@ -42,7 +42,7 @@ class CRCParallel:
     '''
     #Class Object Attribute
     r = 5
-    CCITT_CRC16 = int(0x11021) # CRC16
+    CRC16 = int(0x11021) # CRC16
     CRC4  = int(0x19) # 11001 CRC-4
     CRC32 = int(0x100050003) # CRC-32
 
