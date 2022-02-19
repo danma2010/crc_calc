@@ -176,6 +176,9 @@ if __name__ == "__main__":
     print(CRC.__doc__)
     CRC.crcCalcEquation()
     CRC.makeGolden()
+
+    #CRC4 = CRCParallel('0x1001', 8)
+    3CRC4.crcCalcEquation()
     
        
        
