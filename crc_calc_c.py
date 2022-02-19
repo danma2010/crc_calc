@@ -85,6 +85,8 @@ class CRCParallel:
 
         self.polyList = polyList
 
+
+
     def crcCalcEquation(self):
         crcPolyShift = self.crcPolyHexInput
 
@@ -140,10 +142,15 @@ class CRCParallel:
     def makeGolden(self):
         testInputList = []
         for i in self.testInput:
+            i = int(i,16)
             print(i)
-            print("i:{} {}".format(i, int(i,base=16)))
+            #print("i:{} {}".format(i, int(i,base=16)))
             #for j in range(len(i));
             #testInputList.append()
+            while i > 0:
+                testInputList.append(i % 2)
+                i = int(i / 2)
+        print(testInputList)
 
 
 
@@ -178,7 +185,7 @@ if __name__ == "__main__":
     CRC.makeGolden()
 
     #CRC4 = CRCParallel('0x1001', 8)
-    3CRC4.crcCalcEquation()
+    #CRC4.crcCalcEquation()
     
        
        
