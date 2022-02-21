@@ -103,7 +103,9 @@ class CRCParallel:
 
         for i in range(self.crcLen):
             self.crcList.append('c' + str(i))
+            self.crcListInd.append([i])
             self.cn.append(i)
+
 
 
         for i in range(self.crcLen):
@@ -115,26 +117,36 @@ class CRCParallel:
         self.polyList[self.crcLen-1] = 0
 
         # start the equation calc
-        print("crcList: {}".format(self.crcList))
+        print("crcList:    {}".format(self.crcList))
+        print("crcListInd: {}".format(self.crcListInd))
         print("cn: {}".format(self.cn))
         print("dn: {}".format(self.dn))
         print("crcLen: {}".format(self.crcLen))
 
+        #for i in range(self.crcLen):
+        #    self.crcListInd[i]=[]
+
         # make the shift process
         # shift over the current CRC register for the dataW cycles
         # each step set the XOR bits according to the poly 
-        for i in range(self.dataW-1):
+        for i in range(self.dataW-1, -1, -1):
             for j in range(self.crcLen-1, 0, -1):
                 if self.polyList[j]==1:
-                    self.crcList[j] = self.crcList[self.crcLen-1] + self.XOR + self.crcList[j-1]
+                    print(self.crcListInd[j])
+                    self.crcList[j]    = self.crcList[self.crcLen-1] + self.XOR + self.crcList[j-1]
+                    self.crcListInd[j] = self.crcListInd[self.crcLen-1].append(self.crcListInd[j-1])
                 else:
+                    print(self.crcListInd[j])
                     self.crcList[j] = self.crcList[j-1]
+                    self.crcListInd[j] = self.crcListInd[j-1]
 
             # now move-in the next data
             if self.polyList[0] == 1:
                 self.crcList[0] = self.crcList[self.crcLen-1] + self.XOR + self.dataList[i]
+                self.crcListInd[0] = self.crcListInd[self.crcLen-1].append(self.dn[i])
             else:
                 self.crcList[0] = self.dataList[i]
+                self.crcListInd[0] = self.dn[i]
 
         # make the Equation
         for i in range(self.crcLen):
@@ -144,6 +156,9 @@ class CRCParallel:
         for i in self.equationList:
             print(i)
         print("===========================================\n\n")
+
+        for i in self.crcListInd:
+            print(self.crcListInd(i))
 
         #print(polyList)
         #print(self.dataList)
