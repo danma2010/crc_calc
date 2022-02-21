@@ -56,8 +56,11 @@ class CRCParallel:
         self.dataW = int(wordWidth)
         self.polyList = []
         self.crcList  = []
+        self.crcListInd  = []
         self.dataList = []
         self.equationList = []
+        self.cn = []
+        self.dn = []
         self.XOR = ' ^ '
         #self.crcMatrix = [][]
         self.testInput = ['0x1234', '0x5678', '0x9abc', '0xdefc']
@@ -70,9 +73,12 @@ class CRCParallel:
         # make the list to hold the data-poly
         for i in range(self.dataW):
             self.dataList.append('d' + str(i))
+            self.dn.append(i)
         print("dataList: {}".format(self.dataList))
 
     def makePolyList(self):
+        # set the list of the bits for the Poly
+        # list location 0 is LSB of the poly
         self.crcLen = 0
         crcPolyShift = self.crcPolyHexInput
         polyList = []
@@ -97,6 +103,8 @@ class CRCParallel:
 
         for i in range(self.crcLen):
             self.crcList.append('c' + str(i))
+            self.cn.append(i)
+
 
         for i in range(self.crcLen):
             self.equationList.append('c'+str(i)+' = ')
@@ -108,12 +116,15 @@ class CRCParallel:
 
         # start the equation calc
         print("crcList: {}".format(self.crcList))
+        print("cn: {}".format(self.cn))
+        print("dn: {}".format(self.dn))
+        print("crcLen: {}".format(self.crcLen))
 
         # make the shift process
-        # shift over the data register (data iterations) and the CRC bits
-        for i in range(self.dataW-1, -1, -1):
+        # shift over the current CRC register for the dataW cycles
+        # each step set the XOR bits according to the poly 
+        for i in range(self.dataW-1):
             for j in range(self.crcLen-1, 0, -1):
-                # if '1' gets to the MSB, xor it with the CRC reg, else just shift
                 if self.polyList[j]==1:
                     self.crcList[j] = self.crcList[self.crcLen-1] + self.XOR + self.crcList[j-1]
                 else:
@@ -129,9 +140,10 @@ class CRCParallel:
         for i in range(self.crcLen):
             self.equationList[i] = self.equationList[i] + self.crcList[i]
 
-        print("The following are the equations for each bit")
+        print("\n\nThe following are the equations for each bit\n")
         for i in self.equationList:
             print(i)
+        print("===========================================\n\n")
 
         #print(polyList)
         #print(self.dataList)
@@ -182,7 +194,7 @@ if __name__ == "__main__":
     CRC = CRCParallel(poly, wordWidth)
     print(CRC.__doc__)
     CRC.crcCalcEquation()
-    CRC.makeGolden()
+    #CRC.makeGolden()
 
     #CRC4 = CRCParallel('0x1001', 8)
     #CRC4.crcCalcEquation()
@@ -212,6 +224,7 @@ if __name__ == "__main__":
 
 
     
+
 
 
 
