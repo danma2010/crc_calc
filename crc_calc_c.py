@@ -69,8 +69,7 @@ class CRCParallel:
         print('new CRC instance')
 
     def makeDataList(self):
-        self.dataList = []
-        # make the list to hold the data-poly
+        # make the list to hold the data inputs
         for i in range(self.dataW):
             self.dataList.append('d' + str(i))
             self.dn.append(i)
@@ -91,6 +90,15 @@ class CRCParallel:
 
         self.polyList = polyList
 
+    def makeCrcList(self):
+        for i in range(self.crcLen):
+            self.crcList.append('c' + str(i))
+            self.crcListInd.append([crcList[i]])
+            self.cn.append(i)
+
+        for i in range(self.crcLen):
+            self.equationList.append('c'+str(i)+' = ')
+
 
 
     def crcCalcEquation(self):
@@ -101,15 +109,7 @@ class CRCParallel:
         # make the list-array for the poly
         self.makePolyList()
 
-        for i in range(self.crcLen):
-            self.crcList.append('c' + str(i))
-            self.crcListInd.append([i])
-            self.cn.append(i)
-
-
-
-        for i in range(self.crcLen):
-            self.equationList.append('c'+str(i)+' = ')
+        self.makeCrcList(self)
 
         # remove the '1' in the MSB of the polyList.
         # it's always '1' and will cause complication further.
@@ -135,7 +135,7 @@ class CRCParallel:
                     #print(self.crcListInd[j])
                     self.crcList[j]    = self.crcList[self.crcLen-1] + self.XOR + self.crcList[j-1]
                     self.crcListInd[j] = self.crcListInd[j - 1]
-                    self.crcListInd[j].append(self.crcListInd[self.crcLen-1])
+                    self.crcListInd[j].append(self.crcList[self.crcLen-1])
                 else:
                     #print(self.crcListInd[j])
                     self.crcList[j] = self.crcList[j-1]
@@ -144,7 +144,7 @@ class CRCParallel:
             # now move-in the next data
             if self.polyList[0] == 1:
                 self.crcList[0] = self.crcList[self.crcLen-1] + self.XOR + self.dataList[i]
-                self.crcListInd[0] = self.dn[i]
+                self.crcListInd[0] = self.dataList[i]
                 self.crcListInd[0].append(self.crcList[self.crcLen-1])
             else:
                 self.crcList[0] = self.dataList[i]
