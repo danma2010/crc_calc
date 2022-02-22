@@ -61,7 +61,7 @@ class CRCParallel:
         self.equationList = []
         self.cn = []
         self.dn = []
-        self.XOR = '^'
+        self.XOR = ' ^ '
         #self.crcMatrix = [][]
         self.testInput = ['0x1234', '0x5678', '0x9abc', '0xdefc']
         self.testCRC = 0
@@ -156,6 +156,16 @@ class CRCParallel:
         # make the Equation
         for i in range(self.crcLen):
             self.equationList[i] = self.equationList[i] + self.crcList[i]
+
+        crcLisrSplit = []
+        for i in self.crcList:
+            crcLisrSplit.append(i.split(self.XOR))
+        print(crcLisrSplit)
+
+        #for cn in crcLisrSplit:
+        #    for i in cn:
+
+
 
         print("\n\nThe following are the equations for each bit\n")
         for i in self.equationList:
