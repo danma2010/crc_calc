@@ -73,7 +73,8 @@ class CRCParallel:
         # make the list to hold the data-poly
         for i in range(self.dataW):
             self.dataList.append('d' + str(i))
-            self.dn.append(i)
+            #self.dn.append(i)
+            self.dn.append('d' + str(i))
         print("dataList: {}".format(self.dataList))
 
     def makePolyList(self):
@@ -103,7 +104,8 @@ class CRCParallel:
 
         for i in range(self.crcLen):
             self.crcList.append('c' + str(i))
-            self.crcListInd.append([i])
+            #self.crcListInd.append([i])
+            self.crcListInd.append(['c' + str(i)])
             self.cn.append(i)
 
 
