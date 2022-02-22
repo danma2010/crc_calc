@@ -93,7 +93,7 @@ class CRCParallel:
     def makeCrcList(self):
         for i in range(self.crcLen):
             self.crcList.append('c' + str(i))
-            self.crcListInd.append([crcList[i]])
+            self.crcListInd.append([self.crcList[i]])
             self.cn.append(i)
 
         for i in range(self.crcLen):
