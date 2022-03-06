@@ -107,10 +107,7 @@ class CRCParallel:
         #crcPolyShift = self.crcPolyHexInput
 
         self.makeDataList()
-
-        # make the list-array for the poly
         self.makePolyList()
-
         self.makeCrcList()
 
         # remove the '1' in the MSB of the polyList.
@@ -132,7 +129,7 @@ class CRCParallel:
             cHigh = self.crcList[self.crcLen-1]
             for j in range(self.crcLen-1, 0, -1):
                 if self.polyList[j]==1:
-                    self.crcList[j]    = cHigh + self.XOR + self.crcList[j-1]
+                    self.crcList[j] = cHigh + self.XOR + self.crcList[j-1]
                 else:
                     self.crcList[j] = self.crcList[j-1]
 
@@ -150,10 +147,10 @@ class CRCParallel:
         # remove dulplicate items (as b^a^a^c = b^c)
         for cn in crcLisrSplit:
             removeList = []
-            #print("cn a: {}".format(cn))
+            print("cn a: {}".format(cn))
             cn.sort()
-            #print("cn b: {}".format(cn))
-            #print(len(cn))
+            print("cn b: {}".format(cn))
+            print(len(cn))
             for i in range(1,len(cn)):
                 if (cn[i-1] == cn[i]):
                     removeList.append(cn[i-1])
@@ -167,7 +164,7 @@ class CRCParallel:
             #tmp = ""
             for j in crcLisrSplit[i]:
                 #tmp = j + XOR
-                self.equationList[i] = self.equationList[i] + self.XOR + j
+                self.equationList[i] = self.equationList[i] + j + self.XOR
 
         for i in self.equationList:
             print(i)
