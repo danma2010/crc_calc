@@ -98,10 +98,6 @@ class CRCParallel:
             #self.crcListInd.append([self.crcList[i]])
             #self.cn.append(i)
 
-        for i in range(self.crcLen):
-            self.equationList.append('c'+str(i)+' = ')
-
-
 
     def crcCalcEquation(self):
         #crcPolyShift = self.crcPolyHexInput
@@ -160,11 +156,13 @@ class CRCParallel:
 
             print("cn c: {}".format(cn))
 
+
+        for i in range(self.crcLen):
+            self.equationList.append('c'+str(i)+' = ' + crcLisrSplit[i][0])
+
         for i in range(len(self.equationList)):
-            #tmp = ""
-            for j in crcLisrSplit[i]:
-                #tmp = j + XOR
-                self.equationList[i] = self.equationList[i] + j + self.XOR
+            for j in range(1, len(crcLisrSplit[i])):
+                self.equationList[i] = self.equationList[i] + self.XOR + crcLisrSplit[i][j]
 
         for i in self.equationList:
             print(i)
