@@ -93,13 +93,13 @@ class CRCParallel:
             polyList.append(crcPolyShift % 2)
             crcPolyShift = int(crcPolyShift / 2)
             # make the CRC register
-            self.crcLen = self.crcLen + 1
+            #self.crcLen = self.crcLen + 1
 
         self.polyList = polyList
         polyListInv = polyList[::-1]
         self.polyListInv = polyListInv[1::]
-
-        self.crcLen = self.crcLen -1
+        self.crcLen = polyList.__len__()-1
+        #self.crcLen = self.crcLen -1
         self.polyListInv = self.polyListInv + [0]*(self.dataW)
         print("polyList: {}".format(self.polyListInv))
 
@@ -125,7 +125,7 @@ class CRCParallel:
 
         print("polyList:    {}".format(self.polyList))
         print("polyListInv: {}".format(self.polyListInv))
-        print(self.crcLen)
+        print("crcLen".format(self.crcLen))
 
         # remove the '1' in the MSB of the polyList.
         # it's always '1' and will cause complication further.
@@ -143,7 +143,7 @@ class CRCParallel:
         # make the shift process
         # shift over the current CRC register for the dataW cycles
         # each step set the XOR bits according to the poly 
-        for i in range(self.dataW-1):
+        for i in range(self.dataW):
             cHigh = self.crcList[0]
             for j in range(self.crcList.__len__()-1): # in range(self.crcLen):
                 if self.polyListInv[j]==1:
@@ -158,25 +158,37 @@ class CRCParallel:
             #    self.crcList[0] = self.dn[i]
 
         crcLisrSplit = []
-        for i in self.crcList:
+        for i in self.crcList[0:self.crcLen]:
             crcLisrSplit.append(i.split(self.XOR))
-        print(crcLisrSplit)
+        print("crcLisrSplit".format(crcLisrSplit))
+        #crcLisrSplit = crcLisrSplit[]
 
         # remove dulplicate items (as b^a^a^c = b^c)
+
+        crcLisrSplit = crcLisrSplit[::-1]
+
         for cn in crcLisrSplit:
             removeList = []
             print("cn a: {}".format(cn))
             cn.sort()
             print("cn b: {}".format(cn))
             print(len(cn))
+
+            removeCnt = 0
             for i in range(1,len(cn)):
                 if (cn[i-1] == cn[i]):
-                    removeList.append(cn[i-1])
-                    removeList.append(cn[i])
-            for k in removeList:
-                cn.remove(k)
+                    cn[i-1] = 'x'
+                    cn[i] = 'x'
+                    removeCnt = removeCnt+2
+                    #removeList.append(cn[i-1])
+                    #removeList.append(cn[i])
+            for k in range(removeCnt):
+                cn.remove('x')
+            #for k in removeList:
+            #    cn.remove(k)
 
             print("cn c: {}".format(cn))
+            print("-----------------------")
 
 
         for i in range(self.crcLen):
