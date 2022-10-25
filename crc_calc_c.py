@@ -12,7 +12,7 @@
 import re
 #import time
 import sys
-import numpy
+#import numpy
 
 
 class CRCParallel:
@@ -36,20 +36,27 @@ class CRCParallel:
     http://srecord.sourceforge.net/crc16-ccitt.html
     http://www.ross.net/crc/download/crc_v3.txt
     https://www.drdobbs.com/implementing-the-ccitt-cyclical-redundan/199904926
+    !!!!
+    https://srecord.sourceforge.net/crc16-ccitt.html#overview
+    !!!!
 
     Example:
     for CRC-32 and 32-bit word width:
     >> python .\crc_calc.py 0x100050003 32
+    0x11021 16
+
     '''
     #Class Object Attribute
-    r = 5
+    #r = 5
     CRC16 = int(0x11021) # CRC16
     CRC4  = int(0x19) # 11001 CRC-4
     CRC32 = int(0x100050003) # CRC-32
 
 
-    def __init__(self, poly, wordWidth):
+
+    def __init__(self, poly, initValue, wordWidth):
         self.poly = poly
+        self.initValue = initValue
         #self.polyInv = poly.reverse()
         #self.polyInv = poly[::-1]
 
@@ -64,7 +71,8 @@ class CRCParallel:
         #self.crcListInd  = []
         #self.dataList = []
         self.equationList = []
-        #self.cn = []
+        self.equMatrix = []
+        self.cn = []
         self.dn = []
         self.XOR = ' ^ '
         #self.crcMatrix = [][]
@@ -72,20 +80,12 @@ class CRCParallel:
         #self.testCRC = 0
         self.crcLen = 0
         #print('new CRC instance')
-
-
-    def makeDataList(self):
-        # make the list to hold the data inputs
-        for i in range(self.dataW):
-            #self.dataList.append('d' + str(i))
-            self.dn.append('d' + str(i))
-            #self.dn.append(self.dataList[i])
-        print("dn: {}".format(self.dn))
+        self.makePolyList()
 
     def makePolyList(self):
         # set the list of the bits for the Poly
         # list location 0 is LSB of the poly
-        self.crcLen = 0
+        #self.crcLen = 0
         crcPolyShift = self.crcPolyHexInput
         polyList = []
 
@@ -95,13 +95,21 @@ class CRCParallel:
             # make the CRC register
             #self.crcLen = self.crcLen + 1
 
-        self.polyList = polyList
+        self.polyList = polyList[::-1]
         polyListInv = polyList[::-1]
-        self.polyListInv = polyListInv[1::]
+        #self.polyListInv = polyListInv[1::]
+        self.polyListInv = polyListInv
         self.crcLen = polyList.__len__()-1
-        #self.crcLen = self.crcLen -1
         self.polyListInv = self.polyListInv + [0]*(self.dataW)
-        print("polyList: {}".format(self.polyListInv))
+        print("poly: {}; order: {}; polyList: \n{}".format(self.poly, self.crcLen, self.polyList))
+
+    def makeDataList(self):
+        # make the list to hold the data inputs
+        for i in range(self.dataW):
+            #self.dataList.append('d' + str(i))
+            self.dn.append('d' + str(i))
+            #self.dn.append(self.dataList[i])
+        print("dn: {}".format(self.dn))
 
 
 
@@ -117,17 +125,14 @@ class CRCParallel:
 
 
     def crcCalcEquation(self):
-        #crcPolyShift = self.crcPolyHexInput
-
         self.makeDataList()
-        self.makePolyList()
         self.makeCrcList()
 
         print("polyList:    {}".format(self.polyList))
         print("polyListInv: {}".format(self.polyListInv))
-        print("crcLen".format(self.crcLen))
+        print("crcLen: {}".format(self.crcLen))
 
-        # remove the '1' in the MSB of the polyList.
+        # remove the '1' in the MSB of the polyList. - change to no remove
         # it's always '1' and will cause complication further.
         #print(self.polyList)
         #self.polyList[self.crcLen-1] = 0
@@ -160,7 +165,7 @@ class CRCParallel:
         crcLisrSplit = []
         for i in self.crcList[0:self.crcLen]:
             crcLisrSplit.append(i.split(self.XOR))
-        print("crcLisrSplit".format(crcLisrSplit))
+        print("crcLisrSplit: {}".format(crcLisrSplit))
         #crcLisrSplit = crcLisrSplit[]
 
         # remove dulplicate items (as b^a^a^c = b^c)
@@ -206,9 +211,6 @@ class CRCParallel:
         crcPolyShift = self.crcPolyHexInput
 
         self.makeDataList()
-
-        # make the list-array for the poly
-        self.makePolyList()
 
         self.makeCrcList()
 
@@ -280,11 +282,114 @@ class CRCParallel:
         #print(crcList)
         #print(equationList)
 
+    def calcCRCEqu(self,dataWidth):
+        crcLen = self.crcLen
+        dataList = self.makeShiftRegList(dataWidth)
+        crcEqList = []
 
-    def makeTestList(self):
+        #print(dataList)
+        dataShift = dataList[:]
+
+        for shiftTime in range(dataList.__len__()-crcLen-1):
+            #first Rshift then XOR
+            for i in range(dataShift.__len__()-1):
+                dataShift[i] = dataShift[i+1]
+            dataShift[-1] = ['x']
+
+            for j in range(crcLen,-1,-1):
+                cHigh = dataShift[0]
+                if self.polyList[j]==1:
+                    dataShift[j] = dataShift[j] + cHigh
+
+        # clean duplicates
+        k = 0
+        for i in dataShift:
+            for j in i:
+                #print(i.count(j))
+                if (i.count(j)>1):
+                    print("Clean list for: ({}): {}, {} x {}".format(k, i, i.count(j), j))
+                    i.remove(j)
+                    i.remove(j)
+            k = k+1
+
+        itemNum = crcLen
+        #for k in range(crcLen,-1,-1): #enumerate(dataShift)
+        for k in range(crcLen+1):  # enumerate(dataShift)
+            print ("CRC Eq: C{} = {}".format(itemNum, dataShift[k]))
+            crcEqList.append(dataShift[k])
+            itemNum = itemNum-1
+        self.equationList = crcEqList
+
+        itemNum = 0
+        itemListID = 0
+        itemListIndex = 0
+
+        for k in crcEqList:
+            self.equMatrix.append([itemNum])
+            for j in k:
+                if (j.split('_')[0]=='c'):
+                    itemListID = 0
+                else:
+                    itemListID = 1
+                itemListIndex= j.split('_')[1]
+                #self.equMatrix[itemNum].append(j.split('_')[1])
+                #print(j.split('_')[1])
+                self.equMatrix[itemNum].append([itemListID,itemListIndex])
+            itemNum = itemNum + 1
+
+        #print(self.equMatrix)
+
+
+
+
+
+
+
+        #crc = hex(self.List2Val(dataShift,17))
+        #crc = crc.split('0x')[1]
+        #print("CRC: {}".format(crc))
+
+
+    def makeShiftRegList(self,dataWidth):
+        initValue = self.initValue
+        crcLen = self.crcLen
+        dataList=[]
+        numList=[]
+        cn = []
+        dn = []
+
+        # make datalist with LSB of each word first
+        # bit 0 of the list is the LSB of the first word
+        # the first CRC-Len are initialezed to the init value [0,1]
+        for i in range(crcLen+1):
+            cn.append(["c_"+str(i)])
+
+        dataList = cn[::-1]
+
+        for num in range(dataWidth):
+            dn.append(["d_"+str(num)])
+
+        for item in dn[::-1]:
+            dataList.append(item)
+
+        return dataList
+
+    def makeTestList(self,dataWidth):
         #testInputList = ['0x1234', '0x5678', '0x2222', '0x2222', '0x333', '0x33333']
         #testInputList = ['0x3131', '0x3131', '0x3232', '0x3232', '0x3333', '0x3333']
-        testInputList = ['0x3131', '0x3131']
+        #testInputList = ['0x3131', '0x3131']
+        #testInputList = ['0x4100', '0x0000']
+        #testInputList = ['0x41', '0x00', '0x00']
+
+        testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00']
+        #testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00', '0x00']
+        #testInputList = ['0xffff', '0x3132', '0x3334', '0x3536', '0x3738', '0x3900', '0x0000']
+
+        #testInputList = ['0x11', '0x11']
+
+        #testInputList = ['0x00', '0x00']
+        #testInputList = ['0x4100']
+        #testInputList = ['0x0000', '0x0000']
 
         #a = str(testInputList[0])
         #a = testInputList[0]
@@ -292,28 +397,35 @@ class CRCParallel:
         #print (b)
         #print(b.__len__())
         #print(b[3])
+
+        initValue = self.initValue
+        crcLen = self.crcLen
         dataList=[]
-        for i in range(self.crcList.__len__()+1):
-            dataList.append(0)
+        numList=[]
+        # make datalist with LSB of each word first
+        # bit 0 of the list is the LSB of the first word
+        # the first CRC-Len are initialezed to the init value [0,1]
+        for i in range(crcLen+1):
+            dataList.append(initValue)
         #print(format(5, '0>4b'))
         #for i in range(b.__len__()-1,-1,-1):
         for num in testInputList:
             b = num.split('0x')[1]
-            for i in range(b.__len__()):
+            bInt = int(b,16)
+            for i in range(dataWidth):
                 #print(i)
-                c = format(int(b[i]), '0>4b')
-                #print(c)
-                dataList.append(int(c[0]))
-                dataList.append(int(c[1]))
-                dataList.append(int(c[2]))
-                dataList.append(int(c[3]))
+                numList.append(bInt%2)
+                bInt=int(bInt/2)
+            numList = numList[::-1]
+            dataList = dataList + numList
+            numList = []
         #print(dataList)
         #print(len(dataList))
         return dataList
 
     def makeGolden(self):
         data = self.makeTestList()
-        print(data)
+        print("makeGolden: data: {}".format(data))
         for shift in range(len(data)-17):
             for d in range(len(data)-1):
                 data[d] = data[d+1]
@@ -325,6 +437,42 @@ class CRCParallel:
             print(data)
             print(self.polyList)
 
+    def calcCRC(self,dataWidth):
+        crcLen = self.crcLen
+        initValue = self.initValue
+        testDataList = self.makeTestList(dataWidth)
+        print(testDataList)
+        dataShift = testDataList
+        for i in range(testDataList.__len__()-crcLen-1):
+            #first Rshift then XOR
+            for j in range(dataShift.__len__()-1):
+                dataShift[j] = dataShift[j+1]
+            dataShift[-1] = 9
+
+            if dataShift[0]:
+                for j in range(crcLen+1):
+                    dataShift[j] = dataShift[j] ^ self.polyList[j]
+        print(dataShift)
+        crc = hex(self.List2Val(dataShift,17))
+        crc = crc.split('0x')[1]
+        print("CRC: {}".format(crc))
+
+    #def calcCRCParllel(self):
+
+    def List2Val(self,listIn,N):
+        listVal = 0
+        pow2 = 1
+        listTrunc = listIn[1:N]
+        listInv = listTrunc[::-1]
+        # for i in range(N-1):
+        #     listVal = listVal+pow2*listInv[i]
+        #     pow2 = 2*pow2
+        for i in listInv:
+            listVal = listVal+pow2 * i
+            pow2 = 2*pow2
+
+        return listVal
+
 
 
     #def hex2bin(self, x):
@@ -334,7 +482,7 @@ class CRCParallel:
 if __name__ == "__main__":
 
     # start the main code when called from console
-    print(" CRC Callculator \n")
+    print(" CRC Calculator \n")
 
     if len(sys.argv)== 1:
         #CRCCalc
@@ -354,12 +502,15 @@ if __name__ == "__main__":
            print ("=> got POLY: {}\n".format(poly))
            print ("=> got wordWidth: {}\n\n".format(wordWidth))
 
-    CRC = CRCParallel(poly, wordWidth)
-    print(CRC.__doc__)
-    CRC.crcCalcEquation()
+    CRC = CRCParallel(poly, 0, wordWidth)
+    #print(CRC.__doc__)
+    #CRC.crcCalcEquation()
     #CRC.makeGolden()
     #print(CRC.makeTestList())
-    CRC.makeGolden()
+    ##CRC.makeGolden()
+    CRC.calcCRC(8)
+    #print(CRC.makeShiftRegList(8))
+    CRC.calcCRCEqu(8)
     print("====end===")
 
     #CRC4 = CRCParallel('0x1001', 8)
