@@ -102,6 +102,7 @@ class CRCParallel:
         self.polyListInv = polyListInv
         self.crcLen = polyList.__len__()-1
         self.polyListInv = self.polyListInv + [0]*(self.dataW)
+        print("======================================")
         print("poly: {}; order: {}; polyList: \n{}".format(self.poly, self.crcLen, self.polyList))
 
     def makeDataList(self):
@@ -340,12 +341,6 @@ class CRCParallel:
 
         #print(self.equMatrix)
 
-
-
-
-
-
-
         #crc = hex(self.List2Val(dataShift,17))
         #crc = crc.split('0x')[1]
         #print("CRC: {}".format(crc))
@@ -383,9 +378,11 @@ class CRCParallel:
 
         # Mesage: 'A'
         #testInputList = ['0x41', '0x00', '0x00']
-        testInputList = ['0x41']
+        #testInputList = ['0x41']
+        #testInputList = ['0xA', '0xA','0xB','0xA','0x0']
 
         #testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00']
+        testInputList = ['0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00']
         #testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00', '0x00']
         #testInputList = ['0xffff', '0x3132', '0x3334', '0x3536', '0x3738', '0x3900', '0x0000']
 
@@ -459,7 +456,7 @@ class CRCParallel:
                 for j in range(crcLen+1):
                     dataShift[j] = dataShift[j] ^ self.polyList[j]
         print(dataShift)
-        crc = hex(self.List2Val(dataShift,17))
+        crc = hex(self.List2Val(dataShift,crcLen+1))
         crc = crc.split('0x')[1]
         print("CRC: {}".format(crc))
 
@@ -467,7 +464,7 @@ class CRCParallel:
         crcLen = self.crcLen
         initValue = self.initValue
         testDataList = self.makeTestList(dataWidth)
-        self.calcCRCEqu(8)
+        self.calcCRCEqu(dataWidth)
         print(testDataList)
 
         #make CRC reg
@@ -491,17 +488,18 @@ class CRCParallel:
             cd.append(c[:])
             cd.append(d[:])
             for i in self.equMatrix:
+                aXor = 0
                 cBit = i[0]
                 for j in range(1,i.__len__()):
                     aRow = i[j][0]
                     if (aRow == 0):
-                        aCol = 16-int(i[j][1])
+                        aCol = crcLen-int(i[j][1])
                     else:
-                        aCol = 7-int(i[j][1])
-                    c[cBit] = c[cBit] ^ cd[aRow][aCol]
+                        aCol = (dataWidth-1)-int(i[j][1])
+                    aXor = aXor ^ cd[aRow][aCol]
+                c[cBit] = aXor
 
-
-        crc = hex(self.List2Val(c,17))
+        crc = hex(self.List2Val(c,crcLen+1))
         crc = crc.split('0x')[1]
         print("CRC: {}".format(crc))
 
@@ -559,6 +557,10 @@ if __name__ == "__main__":
     #print(CRC.makeShiftRegList(8))
     #CRC.calcCRCEqu(8)
     CRC.calcCRCPar(8)
+
+    #CRC1 = CRCParallel('0x13', 0, 4)
+    #CRC1.calcCRC(4)
+    #CRC1.calcCRCPar(4)
     print("====end===")
 
     #CRC4 = CRCParallel('0x1001', 8)
