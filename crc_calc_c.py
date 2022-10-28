@@ -70,6 +70,7 @@ class CRCParallel:
         self.crcList  = []
         #self.crcListInd  = []
         #self.dataList = []
+        self.testListNum = 0
         self.equationList = []
         self.equMatrix = []
         self.cn = []
@@ -379,9 +380,12 @@ class CRCParallel:
         #testInputList = ['0x3131', '0x3131', '0x3232', '0x3232', '0x3333', '0x3333']
         #testInputList = ['0x3131', '0x3131']
         #testInputList = ['0x4100', '0x0000']
-        #testInputList = ['0x41', '0x00', '0x00']
 
-        testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00']
+        # Mesage: 'A'
+        #testInputList = ['0x41', '0x00', '0x00']
+        testInputList = ['0x41']
+
+        #testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00']
         #testInputList = ['0xff', '0xff', '0x31', '0x32', '0x33', '0x34', '0x35', '0x36', '0x37', '0x38', '0x39', '0x00', '0x00', '0x00']
         #testInputList = ['0xffff', '0x3132', '0x3334', '0x3536', '0x3738', '0x3900', '0x0000']
 
@@ -400,13 +404,15 @@ class CRCParallel:
 
         initValue = self.initValue
         crcLen = self.crcLen
-        dataList=[]
+        dataBitList=[]
         numList=[]
-        # make datalist with LSB of each word first
+        self.testListNum = testInputList.__len__()
+        self.testWordList = testInputList
+        # make dataBitList with LSB of each word first
         # bit 0 of the list is the LSB of the first word
         # the first CRC-Len are initialezed to the init value [0,1]
         for i in range(crcLen+1):
-            dataList.append(initValue)
+            dataBitList.append(initValue)
         #print(format(5, '0>4b'))
         #for i in range(b.__len__()-1,-1,-1):
         for num in testInputList:
@@ -417,11 +423,11 @@ class CRCParallel:
                 numList.append(bInt%2)
                 bInt=int(bInt/2)
             numList = numList[::-1]
-            dataList = dataList + numList
+            dataBitList = dataBitList + numList
             numList = []
-        #print(dataList)
-        #print(len(dataList))
-        return dataList
+        #print(dataBitList)
+        #print(len(dataBitList))
+        return dataBitList
 
     def makeGolden(self):
         data = self.makeTestList()
@@ -457,7 +463,48 @@ class CRCParallel:
         crc = crc.split('0x')[1]
         print("CRC: {}".format(crc))
 
-    #def calcCRCParllel(self):
+    def calcCRCPar(self,dataWidth):
+        crcLen = self.crcLen
+        initValue = self.initValue
+        testDataList = self.makeTestList(dataWidth)
+        self.calcCRCEqu(8)
+        print(testDataList)
+
+        #make CRC reg
+        c = []
+        d = []
+        for i in range(crcLen + 1):
+            c.append(initValue)
+
+        for word in self.testWordList:
+            d = []
+            b = word.split('0x')[1]
+            bInt = int(b,16)
+            for i in range(dataWidth):
+                #print(i)
+                d.append(bInt%2)
+                bInt=int(bInt/2)
+            d = d[::-1]
+
+            # calculate the Parallel CRC
+            cd=[]
+            cd.append(c[:])
+            cd.append(d[:])
+            for i in self.equMatrix:
+                cBit = i[0]
+                for j in range(1,i.__len__()):
+                    aRow = i[j][0]
+                    if (aRow == 0):
+                        aCol = 16-int(i[j][1])
+                    else:
+                        aCol = 7-int(i[j][1])
+                    c[cBit] = c[cBit] ^ cd[aRow][aCol]
+
+
+        crc = hex(self.List2Val(c,17))
+        crc = crc.split('0x')[1]
+        print("CRC: {}".format(crc))
+
 
     def List2Val(self,listIn,N):
         listVal = 0
@@ -502,7 +549,7 @@ if __name__ == "__main__":
            print ("=> got POLY: {}\n".format(poly))
            print ("=> got wordWidth: {}\n\n".format(wordWidth))
 
-    CRC = CRCParallel(poly, 0, wordWidth)
+    CRC = CRCParallel(poly, 1, wordWidth)
     #print(CRC.__doc__)
     #CRC.crcCalcEquation()
     #CRC.makeGolden()
@@ -510,7 +557,8 @@ if __name__ == "__main__":
     ##CRC.makeGolden()
     CRC.calcCRC(8)
     #print(CRC.makeShiftRegList(8))
-    CRC.calcCRCEqu(8)
+    #CRC.calcCRCEqu(8)
+    CRC.calcCRCPar(8)
     print("====end===")
 
     #CRC4 = CRCParallel('0x1001', 8)
