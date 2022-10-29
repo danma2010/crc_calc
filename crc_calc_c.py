@@ -140,8 +140,20 @@ class CRCParallel:
             itemNum = itemNum-1
         self.equationList = crcEqList
 
-        itemNum = 0
+        print("\n\n")
+        self.equationListStr = []
+        equationListStr = []
+        for k,eq in enumerate(crcEqList):
+            #print("{} {}".format(crcLen-k,eq))
+            equationListStr = "C{} = ".format(crcLen-k)
+            for m in eq:
+                equationListStr = equationListStr + m.split("_")[0]+m.split("_")[1] + self.XOR
+            self.equationListStr.append(equationListStr)
 
+        for eq in self.equationListStr:
+            print(eq)
+
+        itemNum = 0
         # build the CRC Matrix to calculate the test vector CRC
         for k in crcEqList:
             self.equMatrix.append([itemNum])
@@ -341,6 +353,8 @@ if __name__ == "__main__":
            print ("=> got POLY: {}\n".format(poly))
            print ("=> got wordWidth: {}\n\n".format(wordWidth))
 
+
+    #wordWidth = "32"
     CRC = CRCParallel(poly, 1, wordWidth)
     #print(CRC.__doc__)
     #print(CRC.makeTestList())
@@ -349,9 +363,9 @@ if __name__ == "__main__":
     #CRC.calcCRCEqu(8)
     CRC.calcCRCPar()
 
-    #CRC1 = CRCParallel('0x13', 0, 4)
-    #CRC1.calcCRC(4)
-    #CRC1.calcCRCPar(4)
+    CRC1 = CRCParallel('0x13', 0, 4)
+    CRC1.calcCRC()
+    CRC1.calcCRCPar()
 
 
     print("====end===")
