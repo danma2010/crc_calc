@@ -57,31 +57,21 @@ class CRCParallel:
     def __init__(self, poly, initValue, wordWidth):
         self.poly = poly
         self.initValue = initValue
-        #self.polyInv = poly.reverse()
-        #self.polyInv = poly[::-1]
 
         # make the poly to a HEX number
         self.crcPolyHexInput = int(poly, base=16)
-        #self.crcPolyHexInput = poly
-        #self.wordWidth = wordWidth
         self.dataW = int(wordWidth)
         self.polyList = []
         self.polyListInv = []
         self.crcList  = []
-        #self.crcListInd  = []
-        #self.dataList = []
         self.testListNum = 0
         self.equationList = []
         self.equMatrix = []
-        self.cn = []
-        self.dn = []
         self.XOR = ' ^ '
-        #self.crcMatrix = [][]
-        #self.testInput = ['0x1234', '0x5678', '0x9abc', '0xdefc']
-        #self.testCRC = 0
         self.crcLen = 0
-        #print('new CRC instance')
+
         self.makePolyList()
+        #print('new CRC instance')
 
     def makePolyList(self):
         # set the list of the bits for the Poly
@@ -103,195 +93,18 @@ class CRCParallel:
         self.crcLen = polyList.__len__()-1
         self.polyListInv = self.polyListInv + [0]*(self.dataW)
         print("======================================")
-        print("poly: {}; order: {}; polyList: \n{}".format(self.poly, self.crcLen, self.polyList))
+        print("poly: {}; order: {}; Data-Width: {}; polyList: \n{}".format(self.poly, self.crcLen, self.dataW, self.polyList))
+        print("======================================")
 
-    def makeDataList(self):
-        # make the list to hold the data inputs
-        for i in range(self.dataW):
-            #self.dataList.append('d' + str(i))
-            self.dn.append('d' + str(i))
-            #self.dn.append(self.dataList[i])
-        print("dn: {}".format(self.dn))
-
-
-
-    def makeCrcList(self):
-        for i in range(self.crcLen):
-            self.crcList.append('c' + str(i))
-        self.crcList = self.crcList[::-1]
-        self.crcList = self.crcList + self.dn
-        print("crcList: {}".format(self.crcList))
-
-            #self.crcListInd.append([self.crcList[i]])
-            #self.cn.append(i)
-
-
-    def crcCalcEquation(self):
-        self.makeDataList()
-        self.makeCrcList()
-
-        print("polyList:    {}".format(self.polyList))
-        print("polyListInv: {}".format(self.polyListInv))
-        print("crcLen: {}".format(self.crcLen))
-
-        # remove the '1' in the MSB of the polyList. - change to no remove
-        # it's always '1' and will cause complication further.
-        #print(self.polyList)
-        #self.polyList[self.crcLen-1] = 0
-        self.polyListInv[0] = 0
-
-        # start the equation calc
-        #print("crcList:    {}".format(self.crcList))
-        #print("crcListInd: {}".format(self.crcListInd))
-        #print("cn: {}".format(self.cn))
-        #print("dn: {}".format(self.dn))
-        #print("crcLen: {}".format(self.crcLen))
-
-        # make the shift process
-        # shift over the current CRC register for the dataW cycles
-        # each step set the XOR bits according to the poly 
-        for i in range(self.dataW):
-            cHigh = self.crcList[0]
-            for j in range(self.crcList.__len__()-1): # in range(self.crcLen):
-                if self.polyListInv[j]==1:
-                    self.crcList[j] = cHigh + self.XOR + self.crcList[j+1]
-                else:
-                    self.crcList[j] = self.crcList[j+1]
-            self.crcList[-1] = 'X'
-            # now move-in the next data
-            #if self.polyList[0] == 1:
-            #    self.crcList[0] = cHigh + self.XOR + self.dn[i]
-            #else:
-            #    self.crcList[0] = self.dn[i]
-
-        crcLisrSplit = []
-        for i in self.crcList[0:self.crcLen]:
-            crcLisrSplit.append(i.split(self.XOR))
-        print("crcLisrSplit: {}".format(crcLisrSplit))
-        #crcLisrSplit = crcLisrSplit[]
-
-        # remove dulplicate items (as b^a^a^c = b^c)
-
-        crcLisrSplit = crcLisrSplit[::-1]
-
-        for cn in crcLisrSplit:
-            removeList = []
-            print("cn a: {}".format(cn))
-            cn.sort()
-            print("cn b: {}".format(cn))
-            print(len(cn))
-
-            removeCnt = 0
-            for i in range(1,len(cn)):
-                if (cn[i-1] == cn[i]):
-                    cn[i-1] = 'x'
-                    cn[i] = 'x'
-                    removeCnt = removeCnt+2
-                    #removeList.append(cn[i-1])
-                    #removeList.append(cn[i])
-            for k in range(removeCnt):
-                cn.remove('x')
-            #for k in removeList:
-            #    cn.remove(k)
-
-            print("cn c: {}".format(cn))
-            print("-----------------------")
-
-
-        for i in range(self.crcLen):
-            self.equationList.append('c'+str(i)+' = ' + crcLisrSplit[i][0])
-
-        for i in range(len(self.equationList)):
-            for j in range(1, len(crcLisrSplit[i])):
-                self.equationList[i] = self.equationList[i] + self.XOR + crcLisrSplit[i][j]
-
-        for i in self.equationList:
-            print(i)
-
-
-    def crcCalcEquation0(self):
-        crcPolyShift = self.crcPolyHexInput
-
-        self.makeDataList()
-
-        self.makeCrcList()
-
-        # remove the '1' in the MSB of the polyList.
-        # it's always '1' and will cause complication further.
-        #print(self.polyList)
-        self.polyList[self.crcLen-1] = 0
-
-        # start the equation calc
-        print("crcList:    {}".format(self.crcList))
-        #print("crcListInd: {}".format(self.crcListInd))
-        print("cn: {}".format(self.cn))
-        print("dn: {}".format(self.dn))
-        print("crcLen: {}".format(self.crcLen))
-
-        #for i in range(self.crcLen):
-        #    self.crcListInd[i]=[]
-
-        # make the shift process
-        # shift over the current CRC register for the dataW cycles
-        # each step set the XOR bits according to the poly
-        for i in range(self.dataW-1):
-            cHigh = self.crcList[self.crcLen-1]
-            for j in range(self.crcLen-1, 0, -1):
-                if self.polyList[j]==1:
-                    #print(self.crcListInd[j])
-                    #self.crcList[j]    = self.crcList[self.crcLen-1] + self.XOR + self.crcList[j-1]
-                    self.crcList[j]    = cHigh + self.XOR + self.crcList[j-1]
-                    #self.crcListInd[j] = self.crcListInd[j - 1]
-                    #self.crcListInd[j].append(cHigh)
-                else:
-                    #print(self.crcListInd[j])
-                    self.crcList[j] = self.crcList[j-1]
-                    #self.crcListInd[j] = self.crcListInd[j-1]
-
-            # now move-in the next data
-            if self.polyList[0] == 1:
-                self.crcList[0] = cHigh + self.XOR + self.dn[i]
-                #self.crcListInd[0] = self.crcListInd[self.crcLen-1]
-                #self.crcListInd[0].append(self.dn[i])
-            else:
-                self.crcList[0] = self.dn[i]
-                #self.crcListInd[0] = self.dn[i]
-
-        # make the Equation
-        for i in range(self.crcLen):
-            self.equationList[i] = self.equationList[i] + self.crcList[i]
-
-        crcLisrSplit = []
-        for i in self.crcList:
-            crcLisrSplit.append(i.split(self.XOR))
-        print(crcLisrSplit)
-
-        #for cn in crcLisrSplit:
-        #    for i in cn:
-
-
-
-        print("\n\nThe following are the equations for each bit\n")
-        for i in self.equationList:
-            print(i)
-        print("===========================================\n\n")
-
-        #for i in self.crcListInd:
-        #    print(i)
-
-        #print(polyList)
-        #print(self.dn)
-        #print(crcList)
-        #print(equationList)
-
-    def calcCRCEqu(self,dataWidth):
+    def calcCRCEqu(self):
         crcLen = self.crcLen
-        dataList = self.makeShiftRegList(dataWidth)
+        #dataWidth = self.dataW
+        dataList = self.makeShiftRegList(self.dataW)
         crcEqList = []
 
-        #print(dataList)
         dataShift = dataList[:]
 
+        # Calculate the parallel equations
         for shiftTime in range(dataList.__len__()-crcLen-1):
             #first Rshift then XOR
             for i in range(dataShift.__len__()-1):
@@ -304,18 +117,23 @@ class CRCParallel:
                     dataShift[j] = dataShift[j] + cHigh
 
         # clean duplicates
-        k = 0
+        k = -1
         for i in dataShift:
-            for j in i:
-                #print(i.count(j))
-                if (i.count(j)>1):
-                    print("Clean list for: ({}): {}, {} x {}".format(k, i, i.count(j), j))
-                    i.remove(j)
-                    i.remove(j)
             k = k+1
+            cleanFlag = 1
+            while cleanFlag:
+                cleanFlag =0
+                for j in i:
+                    #print(i.count(j))
+                    if (i.count(j)>1):
+                        cleanFlag = cleanFlag + i.count(j)
+                        #print("Clean list for: ({}): {}, {} x {}".format(k, i, i.count(j), j))
+                        i.remove(j)
+                        i.remove(j)
 
+        #print the equations
+        print("===== Parallel Equations =======")
         itemNum = crcLen
-        #for k in range(crcLen,-1,-1): #enumerate(dataShift)
         for k in range(crcLen+1):  # enumerate(dataShift)
             print ("CRC Eq: C{} = {}".format(itemNum, dataShift[k]))
             crcEqList.append(dataShift[k])
@@ -323,9 +141,8 @@ class CRCParallel:
         self.equationList = crcEqList
 
         itemNum = 0
-        itemListID = 0
-        itemListIndex = 0
 
+        # build the CRC Matrix to calculate the test vector CRC
         for k in crcEqList:
             self.equMatrix.append([itemNum])
             for j in k:
@@ -334,17 +151,11 @@ class CRCParallel:
                 else:
                     itemListID = 1
                 itemListIndex= j.split('_')[1]
-                #self.equMatrix[itemNum].append(j.split('_')[1])
                 #print(j.split('_')[1])
                 self.equMatrix[itemNum].append([itemListID,itemListIndex])
             itemNum = itemNum + 1
 
         #print(self.equMatrix)
-
-        #crc = hex(self.List2Val(dataShift,17))
-        #crc = crc.split('0x')[1]
-        #print("CRC: {}".format(crc))
-
 
     def makeShiftRegList(self,dataWidth):
         initValue = self.initValue
@@ -426,24 +237,10 @@ class CRCParallel:
         #print(len(dataBitList))
         return dataBitList
 
-    def makeGolden(self):
-        data = self.makeTestList()
-        print("makeGolden: data: {}".format(data))
-        for shift in range(len(data)-17):
-            for d in range(len(data)-1):
-                data[d] = data[d+1]
-            data[-1]=8
-            if (data[0]==1):
-                for j in range(self.polyList.__len__()):
-                    data[j] = data[j] ^ self.polyList[j]
-
-            print(data)
-            print(self.polyList)
-
-    def calcCRC(self,dataWidth):
+    def calcCRC(self):
         crcLen = self.crcLen
         initValue = self.initValue
-        testDataList = self.makeTestList(dataWidth)
+        testDataList = self.makeTestList(self.dataW)
         print(testDataList)
         dataShift = testDataList
         for i in range(testDataList.__len__()-crcLen-1):
@@ -458,14 +255,15 @@ class CRCParallel:
         print(dataShift)
         crc = hex(self.List2Val(dataShift,crcLen+1))
         crc = crc.split('0x')[1]
-        print("CRC: {}".format(crc))
+        print("Serial Calc CRC: {}\n".format(crc))
+        return crc
 
-    def calcCRCPar(self,dataWidth):
+    def calcCRCPar(self):
         crcLen = self.crcLen
         initValue = self.initValue
-        testDataList = self.makeTestList(dataWidth)
-        self.calcCRCEqu(dataWidth)
-        print(testDataList)
+        testDataList = self.makeTestList(self.dataW)
+        self.calcCRCEqu()
+        print("\ntestDataList: \n{}\n".format(testDataList))
 
         #make CRC reg
         c = []
@@ -477,7 +275,7 @@ class CRCParallel:
             d = []
             b = word.split('0x')[1]
             bInt = int(b,16)
-            for i in range(dataWidth):
+            for i in range(self.dataW):
                 #print(i)
                 d.append(bInt%2)
                 bInt=int(bInt/2)
@@ -495,14 +293,14 @@ class CRCParallel:
                     if (aRow == 0):
                         aCol = crcLen-int(i[j][1])
                     else:
-                        aCol = (dataWidth-1)-int(i[j][1])
+                        aCol = (self.dataW-1)-int(i[j][1])
                     aXor = aXor ^ cd[aRow][aCol]
                 c[cBit] = aXor
 
         crc = hex(self.List2Val(c,crcLen+1))
         crc = crc.split('0x')[1]
-        print("CRC: {}".format(crc))
-
+        print("Parallel Test CRC: {}".format(crc))
+        return crc
 
     def List2Val(self,listIn,N):
         listVal = 0
@@ -517,10 +315,6 @@ class CRCParallel:
             pow2 = 2*pow2
 
         return listVal
-
-
-
-    #def hex2bin(self, x):
 
 
 #--------------
@@ -549,23 +343,20 @@ if __name__ == "__main__":
 
     CRC = CRCParallel(poly, 1, wordWidth)
     #print(CRC.__doc__)
-    #CRC.crcCalcEquation()
-    #CRC.makeGolden()
     #print(CRC.makeTestList())
-    ##CRC.makeGolden()
-    CRC.calcCRC(8)
+    CRC.calcCRC()
     #print(CRC.makeShiftRegList(8))
     #CRC.calcCRCEqu(8)
-    CRC.calcCRCPar(8)
+    CRC.calcCRCPar()
 
     #CRC1 = CRCParallel('0x13', 0, 4)
     #CRC1.calcCRC(4)
     #CRC1.calcCRCPar(4)
+
+
     print("====end===")
 
-    #CRC4 = CRCParallel('0x1001', 8)
-    #CRC4.crcCalcEquation()
-    
+
        
        
       
