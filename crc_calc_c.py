@@ -359,7 +359,7 @@ if __name__ == "__main__":
 
     #wordWidth = "32"
     print("Calling CRCParallel")
-    CRC = CRCParallel(poly, 1, wordWidth)
+    CRC = CRCParallel(poly, 1, wordWidth) 
     #print(CRC.__doc__)
     #print(CRC.makeTestList())
     CRC.calcCRC()
